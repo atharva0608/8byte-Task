@@ -1,0 +1,42 @@
+# ─── Global ───────────────────────────────────────────────────────────────────
+aws_region   = "us-east-1"
+project_name = "8byte"
+environment  = "dev"
+
+# ─── VPC ──────────────────────────────────────────────────────────────────────
+vpc_cidr           = "10.0.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b"]
+
+public_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
+eks_subnet_cidrs    = ["10.0.11.0/24", "10.0.12.0/24"]
+db_subnet_cidrs     = ["10.0.21.0/24", "10.0.22.0/24"]
+
+# ─── EKS ──────────────────────────────────────────────────────────────────────
+eks_cluster_name       = "8byte-eks"
+eks_version            = "1.29"
+eks_node_instance_type = "t3.medium"
+eks_desired_nodes      = 2
+eks_min_nodes          = 1
+eks_max_nodes          = 4
+
+# ─── Jenkins ──────────────────────────────────────────────────────────────────
+jenkins_instance_type = "t3.medium"
+jenkins_key_name      = "your-key-pair-name"
+admin_cidr            = "0.0.0.0/0" # Replace with your IP
+
+# ─── RDS ──────────────────────────────────────────────────────────────────────
+rds_engine              = "postgres"
+rds_engine_version      = "15.4"
+rds_instance_class      = "db.t3.micro"
+db_name                 = "appdb"
+db_username             = "dbadmin"
+backup_retention_period = 7
+
+# ─── Service Credentials (never commit real values) ───────────────────────────
+docker_username = "your-dockerhub-username"
+docker_password = "your-dockerhub-token"
+
+git_username = "your-github-username"
+git_token    = "ghp_your-github-personal-access-token"
+git_repo_url = "https://github.com/your-org/your-repo"
+
