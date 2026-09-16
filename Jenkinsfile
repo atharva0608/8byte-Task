@@ -6,12 +6,12 @@ pipeline {
     }
 
     environment {
-        DOCKER_HUB_USERNAME = 'YOUR_DOCKERHUB_USERNAME'
-        DOCKER_CREDENTIAL_ID = 'docker-hub-credentials'
-        GIT_CREDENTIAL_ID = 'github-credentials'
+        DOCKER_HUB_USERNAME = 'atharva608'
+        DOCKER_CREDENTIAL_ID = 'Docker-Hub-creds'
+        GIT_CREDENTIAL_ID = 'Git-hub-Cred'
         FRONTEND_IMAGE = "${DOCKER_HUB_USERNAME}/demo-application-frontend"
         BACKEND_IMAGE = "${DOCKER_HUB_USERNAME}/demo-application-backend"
-        API_REPO = "your-org/your-repo"
+        API_REPO = "atharva0608/8byte-Task"
     }
 
     stages {
@@ -30,7 +30,7 @@ pipeline {
                             env.IMAGE_TAG = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                         } else if (env.BRANCH_NAME == 'main') {
                             // Extract the already-tested SHA from staging manifest
-                            env.IMAGE_TAG = sh(script: "grep -A 1 'name: YOUR_DOCKERHUB_USERNAME/demo-application-backend' demo-application/kubernetes/overlays/staging/kustomization.yaml | grep newTag | awk '{print \\$2}' || echo ''", returnStdout: true).trim()
+                            env.IMAGE_TAG = sh(script: "grep -A 1 'name: atharva608/demo-application-backend' demo-application/kubernetes/overlays/staging/kustomization.yaml | grep newTag | awk '{print \\$2}' || echo ''", returnStdout: true).trim()
                             if (!env.IMAGE_TAG) {
                                 error("Could not determine IMAGE_TAG from staging manifest on main branch.")
                             }
@@ -126,16 +126,16 @@ pipeline {
                 dir('demo-application/kubernetes') {
                     script {
                         // Store previous SHA for potential rollback
-                        env.PREV_SHA = sh(script: "grep -A 1 'name: YOUR_DOCKERHUB_USERNAME/demo-application-backend' overlays/staging/kustomization.yaml | grep newTag | awk '{print \\$2}' || echo ''", returnStdout: true).trim()
+                        env.PREV_SHA = sh(script: "grep -A 1 'name: atharva608/demo-application-backend' overlays/staging/kustomization.yaml | grep newTag | awk '{print \\$2}' || echo ''", returnStdout: true).trim()
                     }
-                    sh "cd overlays/staging && kustomize edit set image YOUR_DOCKERHUB_USERNAME/demo-application-backend:latest=${BACKEND_IMAGE}:${IMAGE_TAG}"
-                    sh "cd overlays/staging && kustomize edit set image YOUR_DOCKERHUB_USERNAME/demo-application-frontend:latest=${FRONTEND_IMAGE}:${IMAGE_TAG}"
+                    sh "cd overlays/staging && kustomize edit set image atharva608/demo-application-backend:latest=${BACKEND_IMAGE}:${IMAGE_TAG}"
+                    sh "cd overlays/staging && kustomize edit set image atharva608/demo-application-frontend:latest=${FRONTEND_IMAGE}:${IMAGE_TAG}"
                     
                     withCredentials([usernamePassword(credentialsId: GIT_CREDENTIAL_ID, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
                         sh """
                         git config user.email "jenkins@8byte.local"
                         git config user.name "Jenkins CI"
-                        git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/your-org/your-repo.git
+                        git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/atharva0608/8byte-Task.git
                         git add overlays/staging/kustomization.yaml
                         git commit -m "ci: promote ${IMAGE_TAG} to staging [skip ci]" || echo "No changes to commit"
                         git push origin testing-branch
@@ -161,14 +161,14 @@ pipeline {
                         echo "Staging validation failed! Initiating rollback..."
                         dir('demo-application/kubernetes') {
                             if (env.PREV_SHA && env.PREV_SHA != '') {
-                                sh "cd overlays/staging && kustomize edit set image YOUR_DOCKERHUB_USERNAME/demo-application-backend:latest=${BACKEND_IMAGE}:${PREV_SHA}"
-                                sh "cd overlays/staging && kustomize edit set image YOUR_DOCKERHUB_USERNAME/demo-application-frontend:latest=${FRONTEND_IMAGE}:${PREV_SHA}"
+                                sh "cd overlays/staging && kustomize edit set image atharva608/demo-application-backend:latest=${BACKEND_IMAGE}:${PREV_SHA}"
+                                sh "cd overlays/staging && kustomize edit set image atharva608/demo-application-frontend:latest=${FRONTEND_IMAGE}:${PREV_SHA}"
                                 
                                 withCredentials([usernamePassword(credentialsId: GIT_CREDENTIAL_ID, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
                                     sh """
                                     git config user.email "jenkins@8byte.local"
                                     git config user.name "Jenkins CI"
-                                    git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/your-org/your-repo.git
+                                    git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/atharva0608/8byte-Task.git
                                     git add overlays/staging/kustomization.yaml
                                     git commit -m "ci: rollback staging to ${PREV_SHA} [skip ci]" || true
                                     git push origin testing-branch || true
@@ -205,7 +205,7 @@ pipeline {
                     if echo "\$PR_RESPONSE" | grep -q "A pull request already exists"; then
                         echo "PR already exists for this branch."
                         # Find the existing PR number
-                        PR_NUMBER=\$(curl -s -H "Authorization: token ${GIT_PASS}" https://api.github.com/repos/${API_REPO}/pulls?head=your-org:testing-branch | grep -m 1 '"number":' | awk -F': ' '{print \\$2}' | sed 's/,//')
+                        PR_NUMBER=\$(curl -s -H "Authorization: token ${GIT_PASS}" https://api.github.com/repos/${API_REPO}/pulls?head=atharva0608:testing-branch | grep -m 1 '"number":' | awk -F': ' '{print \\$2}' | sed 's/,//')
                         if [ ! -z "\$PR_NUMBER" ]; then
                             curl -s -X PATCH -H "Authorization: token ${GIT_PASS}" \
                             -H "Accept: application/vnd.github.v3+json" \
@@ -240,14 +240,14 @@ pipeline {
             when { expression { env.SKIP_CI == 'false' && (env.BRANCH_NAME == 'main' || params.ROLLBACK_SHA != '') } }
             steps {
                 dir('demo-application/kubernetes') {
-                    sh "cd overlays/production && kustomize edit set image YOUR_DOCKERHUB_USERNAME/demo-application-backend:latest=${BACKEND_IMAGE}:${IMAGE_TAG}"
-                    sh "cd overlays/production && kustomize edit set image YOUR_DOCKERHUB_USERNAME/demo-application-frontend:latest=${FRONTEND_IMAGE}:${IMAGE_TAG}"
+                    sh "cd overlays/production && kustomize edit set image atharva608/demo-application-backend:latest=${BACKEND_IMAGE}:${IMAGE_TAG}"
+                    sh "cd overlays/production && kustomize edit set image atharva608/demo-application-frontend:latest=${FRONTEND_IMAGE}:${IMAGE_TAG}"
                     
                     withCredentials([usernamePassword(credentialsId: GIT_CREDENTIAL_ID, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
                         sh """
                         git config user.email "jenkins@8byte.local"
                         git config user.name "Jenkins CI"
-                        git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/your-org/your-repo.git
+                        git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/atharva0608/8byte-Task.git
                         git add overlays/production/kustomization.yaml
                         git commit -m "ci: promote ${IMAGE_TAG} to production [skip ci]" || echo "No changes to commit"
                         git push origin main
