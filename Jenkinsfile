@@ -30,7 +30,7 @@ pipeline {
                             env.IMAGE_TAG = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                         } else if (env.BRANCH_NAME == 'main') {
                             // Extract the already-tested SHA from staging manifest
-                            env.IMAGE_TAG = sh(script: "grep -A 1 'name: atharva608/demo-application-backend' demo-application/kubernetes/overlays/staging/kustomization.yaml | grep newTag | awk '{print \\$2}' || echo ''", returnStdout: true).trim()
+                            env.IMAGE_TAG = sh(script: "grep -A 1 'name: atharva608/demo-application-backend' demo-application/kubernetes/overlays/staging/kustomization.yaml | grep newTag | awk '{print \$2}' || echo ''", returnStdout: true).trim()
                             if (!env.IMAGE_TAG) {
                                 error("Could not determine IMAGE_TAG from staging manifest on main branch.")
                             }
@@ -126,7 +126,7 @@ pipeline {
                 dir('demo-application/kubernetes') {
                     script {
                         // Store previous SHA for potential rollback
-                        env.PREV_SHA = sh(script: "grep -A 1 'name: atharva608/demo-application-backend' overlays/staging/kustomization.yaml | grep newTag | awk '{print \\$2}' || echo ''", returnStdout: true).trim()
+                        env.PREV_SHA = sh(script: "grep -A 1 'name: atharva608/demo-application-backend' overlays/staging/kustomization.yaml | grep newTag | awk '{print \$2}' || echo ''", returnStdout: true).trim()
                     }
                     sh "cd overlays/staging && kustomize edit set image atharva608/demo-application-backend:latest=${BACKEND_IMAGE}:${IMAGE_TAG}"
                     sh "cd overlays/staging && kustomize edit set image atharva608/demo-application-frontend:latest=${FRONTEND_IMAGE}:${IMAGE_TAG}"
@@ -205,7 +205,7 @@ pipeline {
                     if echo "\$PR_RESPONSE" | grep -q "A pull request already exists"; then
                         echo "PR already exists for this branch."
                         # Find the existing PR number
-                        PR_NUMBER=\$(curl -s -H "Authorization: token ${GIT_PASS}" https://api.github.com/repos/${API_REPO}/pulls?head=atharva0608:testing-branch | grep -m 1 '"number":' | awk -F': ' '{print \\$2}' | sed 's/,//')
+                        PR_NUMBER=\$(curl -s -H "Authorization: token ${GIT_PASS}" https://api.github.com/repos/${API_REPO}/pulls?head=atharva0608:testing-branch | grep -m 1 '"number":' | awk -F': ' '{print \$2}' | sed 's/,//')
                         if [ ! -z "\$PR_NUMBER" ]; then
                             curl -s -X PATCH -H "Authorization: token ${GIT_PASS}" \
                             -H "Accept: application/vnd.github.v3+json" \
