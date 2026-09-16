@@ -18,6 +18,13 @@ pipeline {
         stage('Initialize & Prevent Loop') {
             steps {
                 script {
+                    if (!env.BRANCH_NAME && env.GIT_BRANCH) {
+                        env.BRANCH_NAME = env.GIT_BRANCH.replace('origin/', '')
+                    } else if (!env.BRANCH_NAME) {
+                        env.BRANCH_NAME = 'testing-branch' // Fallback for manual jobs
+                    }
+                    echo "Operating on branch: ${env.BRANCH_NAME}"
+
                     def commitMsg = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
                     if (commitMsg.contains('[skip ci]')) {
                         echo "Automated GitOps commit detected. Skipping pipeline."
